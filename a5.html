@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Quiz Platform</title>
+    <style>
+        :root {
+            --primary-color: #1e293b;
+            --success-bg: #e8f8f5;
+            --success-border: #27ae60;
+            --success-text: #27ae60;
+            --wrong-bg: #fceae9;
+            --wrong-border: #e74c3c;
+            --wrong-text: #c0392b;
+            --gray-border: #e2e8f0;
+            --text-main: #0f172a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .quiz-card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 680px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            box-sizing: border-box;
+        }
+
+        /* Top Bar Header */
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 15px;
+        }
+
+        .timer {
+            background-color: #fff1f2;
+            color: #e11d48;
+            font-weight: bold;
+            font-size: 1.1em;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-family: monospace;
+        }
+
+        .question-number {
+            color: #64748b;
+            font-size: 1.05em;
+            font-weight: 500;
+        }
+
+        /* Question Text Style */
+        .question-text {
+            font-size: 1.3em;
+            color: var(--text-main);
+            font-weight: bold;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        /* Options Design Blocks */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .option-item {
+            background-color: #ffffff;
+            border: 1px solid var(--gray-border);
+            border-radius: 10px;
+            padding: 15px 20px;
+            font-size: 1.1em;
+            color: #334155;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .option-item:hover {
+            border-color: #cbd5e1;
+            background-color: #f8fafc;
+        }
+
+        .option-item.selected {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+
+        /* Immediate Correction Visual States */
+        .option-item.correct {
+            background-color: var(--success-bg) !important;
+            border: 1.5px solid var(--success-border) !important;
+            color: var(--success-text) !important;
+        }
+
+        .option-item.wrong {
+            background-color: var(--wrong-bg) !important;
+            border: 1.5px solid var(--wrong-border) !important;
+            color: var(--wrong-text) !important;
+        }
+
+        /* Explanation Box Component */
+        .explanation-box {
+            display: none;
+            background-color: #f8fafc;
+            border-left: 4px solid #4f46e5;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            font-size: 0.95em;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .explanation-title {
+            color: #4f46e5;
+            font-weight: bold;
+            font-size: 1.05em;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Footer Controls */
+        .quiz-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 6px;
+        }
+
+        .page-num {
+            width: 35px;
+            height: 35px;
+            border: 1px solid var(--gray-border);
+            background-color: #ffffff;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 0.95em;
+            color: #0f172a;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .page-num.active {
+            background-color: #3b82f6;
+            color: #ffffff;
+            border-color: #3b82f6;
+        }
+
+        .page-num.correct-nav {
+            background-color: var(--success-border);
+            color: #ffffff;
+            border-color: var(--success-border);
+        }
+
+        .page-num.wrong-nav {
+            background-color: var(--wrong-border);
+            color: #ffffff;
+            border-color: var(--wrong-border);
+        }
+
+        .actions-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-submit {
+            background-color: #cbd5e1;
+            color: #64748b;
+        }
+
+        .btn-submit.ready {
+            background-color: #cbd5e1;
+            color: #0f172a;
+        }
+
+        .btn-next {
+            background-color: var(--primary-color);
+            color: #ffffff;
+        }
+
+        .btn-next:hover {
+            background-color: #0f172a;
+        }
+
+        #total-score-box {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--success-text);
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-card">
+    <!-- Quiz Header with Timer & State -->
+    <div class="quiz-header">
+        <div class="timer" id="countdown">05:00</div>
+        <div class="question-number" id="q-counter">Question 1 of 8</div>
+    </div>
+
+    <!-- Active Question Node Body -->
+    <div id="quiz-body">
+        <div class="question-text" id="q-text">Loading question data...</div>
+        <div class="options-container" id="options-block"></div>
+        
+        <!-- Explanation Meta Box -->
+        <div class="explanation-box" id="explanation-block">
+            <div class="explanation-title">💡 Correction and Cognitive Analysis:</div>
+            <div id="explanation-text">Explanation content goes here...</div>
+        </div>
+    </div>
+
+    <!-- Navigation Control Layout -->
+    <div class="quiz-footer">
+        <div class="pagination" id="nav-pagination"></div>
+        <div class="actions-buttons">
+            <button class="btn btn-submit" id="submit-btn" onclick="checkCurrentAnswer()">Submit Answer</button>
+            <button class="btn btn-next" id="next-btn" onclick="nextQuestion()">Next</button>
+        </div>
+    </div>
+    
+    <div id="total-score-box"></div>
+</div>
+
+<script>
+    // Authentic SAT Question Arrays mapped natively into Multiple Choice Formats
+    const quizData = [
+        {
+            question: "Penelope bought 7 rugs that were each the same price. She used a coupon for $28 off the entire purchase. The cost for the entire purchase after using the coupon was $56. What was the original price, in dollars, for 1 rug?",
+            options: ["A) $8", "B) $10", "C) $12", "D) $14"],
+            correct: 2, // Choice C
+            exp: "Let x be the original price of 1 rug. The equation representing the problem is: 7x - 28 = 56. Adding 28 to both sides yields 7x = 84. Dividing both sides by 7 leaves x = 12."
+        },
+        {
+            question: "For a training program, James McNeil runs at an average rate of 3.1 minutes per kilometer. Which function m models the number of minutes it will take James McNeil to run x kilometers at this rate?",
+            options: ["A) m(x) = 3.1x", "B) m(x) = x / 3.1", "C) m(x) = x + 3.1", "D) m(x) = x - 3.1"],
+            correct: 0, // Choice A
+            exp: "Since James runs at a fixed, constant rate of 3.1 minutes for every single kilometer, multiplying this rate factor by the total distance parameter x provides the total time function: m(x) = 3.1x."
+        },
+        {
+            question: "f(x) = 6x + 2. The function gives the total number of people on a class trip with x chaperones. What is the total number of people on a class trip with 6 chaperones?",
+            options: ["A) 36 people", "B) 38 people", "C) 40 people", "D) 42 people"],
+            correct: 1, // Choice B
+            exp: "Substitute x = 6 directly into the defined functional expression: f(6) = 6(6) + 2 = 36 + 2 = 38 people total."
+        },
+        {
+            question: "The function f is defined by f(x) = (x + 28) / 7, and f(a) = 8, where a is a constant. What is the value of a?",
+            options: ["A) 8", "B) 28", "C) 56", "D) 84"],
+            correct: 1, // Choice B
+            exp: "Set the expression evaluated at value 'a' equal to 8: (a + 28) / 7 = 8. Multiply both sides by 7 to yield a + 28 = 56. Subtract 28 from both sides to reveal a = 28."
+        },
+        {
+            question: "A sculpture is made of 24 ounces of chocolate. When it is hot outside, the amount of chocolate in the sculpture decreases by 1 ounce every 2 hours. If 8 ounces of chocolate remain in the sculpture, for how many hours has it been hot outside?",
+            options: ["A) 4 hours", "B) 8 hours", "C) 16 hours", "D) 32 hours"],
+            correct: 3, // Choice D
+            exp: "The structural amount of chocolate melted is: 24 - 8 = 16 ounces. At a structural melt rate of 1 ounce every 2 hours, the calculation is 16 * 2 = 32 hours spent in the heat."
+        },
+        {
+            question: "The function f is defined by the equation f(x) = 9x + 1. What is the value of f(x) when x = 6?",
+            options: ["A) 54", "B) 55", "C) 56", "D) 60"],
+            correct: 1, // Choice B
+            exp: "Perform basic numeric evaluation by substituting x = 6 inside the setup: f(6) = 9(6) + 1 = 54 + 1 = 55."
+        },
+        {
+            question: "The function g is defined by g(x) = 8x. For what value of x is g(x) = 88?",
+            options: ["A) 8", "B) 10", "C) 11", "D) 12"],
+            correct: 2, // Choice C
+            exp: "Equate the function representation: 8x = 88. Isolate variable x completely by dividing both sides cleanly by the coefficient 8 to get x = 11."
+        },
+        {
+            question: "A muralist charges $360 for the first three hours of painting plus an hourly fee for each additional hour. The total cost for 5 hours of painting is $540. Which function f gives the total cost, in dollars, for x hours of painting, where x ≥ 3?",
+            options: ["A) f(x) = 90x + 90", "B) f(x) = 90x + 360", "C) f(x) = 108x + 90", "D) f(x) = 108x + 360"],
+            correct: 0, // Choice A
+            exp: "The base payment covers 3 hours. Working a 5-hour job introduces 2 extra incremental hours costing an additional $540 - $360 = $180. This puts the premium hourly rate at $90/hr. The formula for x total hours translates down to: 360 + 90(x - 3) = 90x + 90."
+        }
+    ];
+
+    let currentIdx = 0;
+    let selectedAnswers = Array(quizData.length).fill(null);
+    let isSubmitted = Array(quizData.length).fill(false);
+    let totalScore = 0;
+
+    // Automatic countdown logic module (5 Minutes)
+    let timeInSeconds = 300;
+    const timerElement = document.getElementById('countdown');
+    const timerInterval = setInterval(() => {
+        let minutes = Math.floor(timeInSeconds / 60);
+        let seconds = timeInSeconds % 60;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        seconds = seconds < 10 ? '0' + seconds : seconds;
+        timerElement.innerText = `${minutes}:${seconds}`;
+        if (timeInSeconds <= 0) {
+            clearInterval(timerInterval);
+            finishQuizAutomatically();
+        }
+        timeInSeconds--;
+    }, 1000);
+
+    // Pagination Layout Builder
+    function buildPagination() {
+        const pagBlock = document.getElementById('nav-pagination');
+        pagBlock.innerHTML = '';
+        quizData.forEach((_, idx) => {
+            const btn = document.createElement('div');
+            btn.className = `page-num ${idx === currentIdx ? 'active' : ''}`;
+            btn.innerText = idx + 1;
+            btn.onclick = () => jumpToQuestion(idx);
+            pagBlock.appendChild(btn);
+        });
+    }
+
+    // Question State Renderer Engine
+    function loadQuestion() {
+        const q = quizData[currentIdx];
+        document.getElementById('q-counter').innerText = `Question ${currentIdx + 1} of ${quizData.length}`;
+        document.getElementById('q-text').innerText = q.question;
+        
+        const optionsBlock = document.getElementById('options-block');
+        optionsBlock.innerHTML = '';
+        
+        q.options.forEach((opt, idx) => {
+            const optBtn = document.createElement('div');
+            optBtn.className = 'option-item';
+            optBtn.innerText = opt;
+            
+            if (isSubmitted[currentIdx]) {
+                if (idx === q.correct) {
+                    optBtn.classList.add('correct');
+                } else if (idx === selectedAnswers[currentIdx]) {
+                    optBtn.classList.add('wrong');
+                }
+            } else {
+                if (idx === selectedAnswers[currentIdx]) {
+                    optBtn.classList.add('selected');
+                }
+                optBtn.onclick = () => selectOption(idx);
+            }
+            optionsBlock.appendChild(optBtn);
+        });
+
+        const expBlock = document.getElementById('explanation-block');
+        if (isSubmitted[currentIdx]) {
+            expBlock.style.display = 'block';
+            document.getElementById('explanation-text').innerText = q.exp;
+            document.getElementById('submit-btn').style.display = 'none';
+        } else {
+            expBlock.style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'block';
+            updateSubmitButtonState();
+        }
+
+        updatePaginationStyles();
+    }
+
+    function selectOption(idx) {
+        if (isSubmitted[currentIdx]) return;
+        selectedAnswers[currentIdx] = idx;
+        
+        const items = document.querySelectorAll('.option-item');
+        items.forEach((item, i) => {
+            item.classList.remove('selected');
+            if (i === idx) item.classList.add('selected');
+        });
+        updateSubmitButtonState();
+    }
+
+    function updateSubmitButtonState() {
+        const btn = document.getElementById('submit-btn');
+        if (selectedAnswers[currentIdx] !== null) {
+            btn.classList.add('ready');
+            btn.style.backgroundColor = '#3b82f6';
+            btn.style.color = '#ffffff';
+        } else {
+            btn.classList.remove('ready');
+            btn.style.backgroundColor = '#cbd5e1';
+            btn.style.color = '#64748b';
+        }
+    }
+
+    // Dynamic color processing and execution matching the system screenshots perfectly
+    function checkCurrentAnswer() {
+        if (selectedAnswers[currentIdx] === null || isSubmitted[currentIdx]) return;
+        
+        isSubmitted[currentIdx] = true;
+        const q = quizData[currentIdx];
+        
+        if (selectedAnswers[currentIdx] === q.correct) {
+            totalScore++;
+        }
+        
+        loadQuestion(); 
+    }
+
+    function nextQuestion() {
+        if (currentIdx < quizData.length - 1) {
+            currentIdx++;
+            loadQuestion();
+        } else {
+            const scoreBox = document.getElementById('total-score-box');
+            scoreBox.style.display = 'block';
+            scoreBox.innerText = `Final Comprehensive Score: ${totalScore} / ${quizData.length}`;
+        }
+    }
+
+    function jumpToQuestion(idx) {
+        currentIdx = idx;
+        loadQuestion();
+    }
+
+    function updatePaginationStyles() {
+        const pages = document.querySelectorAll('.page-num');
+        pages.forEach((page, idx) => {
+            page.classList.remove('active', 'correct-nav', 'wrong-nav');
+            if (idx === currentIdx) {
+                page.classList.add('active');
+            } else if (isSubmitted[idx]) {
+                if (selectedAnswers[idx] === quizData[idx].correct) {
+                    page.classList.add('correct-nav');
+                } else {
+                    page.classList.add('wrong-nav');
+                }
+            }
+        });
+    }
+
+    function finishQuizAutomatically() {
+        alert("Quiz execution time has expired!");
+        for(let i = 0; i < quizData.length; i++){
+            isSubmitted[i] = true;
+        }
+        loadQuestion();
+    }
+
+    // Initial Bootstrap
+    buildPagination();
+    loadQuestion();
+</script>
+
+</body>
+</html>
